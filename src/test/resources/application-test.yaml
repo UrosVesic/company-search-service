@@ -1,0 +1,9 @@
+app:
+  free-service:
+    failure-rate: 0.0
+  premium-service:
+    failure-rate: 0.0
+
+logging:
+  level:
+    org.springframework.test: DEBUG

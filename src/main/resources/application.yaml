@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/company-search
+    username: test
+    password: test
+  application:
+    name: company-search-service
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+app:
+  self-base-url: http://localhost:${server.port:8080}
+  free-service:
+    failure-rate: 0.40
+  premium-service:
+    failure-rate: 0.10

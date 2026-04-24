@@ -19,7 +19,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.Instant
+import java.time.OffsetDateTime
 import java.time.LocalDate
 import java.util.UUID
 
@@ -34,7 +34,7 @@ class BackendServiceTest {
 
     @BeforeEach
     fun setUp() {
-        every { verificationRepository.save(any()) } answers { firstArg() }
+        every { verificationRepository.upsert(any()) } answers { firstArg() }
         backendService = BackendService(freeClient, premiumClient, verificationRepository, objectMapper)
     }
 
@@ -168,7 +168,7 @@ class BackendServiceTest {
         every { verificationRepository.findByVerificationId(verificationId) } returns VerificationEntity(
             verificationId = verificationId,
             queryText = "OLD",
-            timestamp = Instant.now(),
+            timestamp = OffsetDateTime.now(),
             result = resultJson,
             source = CompanySource.FREE
         )
@@ -191,7 +191,7 @@ class BackendServiceTest {
         every { freeClient.searchCompanies("ABC") } returns ClientResult.Success(
             listOf(activeCompany("ABC", "Free Co"))
         )
-        every { verificationRepository.save(capture(entitySlot)) } answers { entitySlot.captured }
+        every { verificationRepository.upsert(capture(entitySlot)) } answers { entitySlot.captured }
 
         backendService.search(verificationId, "ABC")
 
@@ -212,7 +212,7 @@ class BackendServiceTest {
         every { premiumClient.searchCompanies("Q") } returns ClientResult.Success(
             listOf(activeCompany("Q1", "Premium Co"))
         )
-        every { verificationRepository.save(capture(entitySlot)) } answers { entitySlot.captured }
+        every { verificationRepository.upsert(capture(entitySlot)) } answers { entitySlot.captured }
 
         backendService.search(verificationId, "Q")
 
@@ -226,7 +226,7 @@ class BackendServiceTest {
         every { verificationRepository.findByVerificationId(verificationId) } returns null
         every { freeClient.searchCompanies("Q") } returns ClientResult.ServiceUnavailable
         every { premiumClient.searchCompanies("Q") } returns ClientResult.ServiceUnavailable
-        every { verificationRepository.save(capture(entitySlot)) } answers { entitySlot.captured }
+        every { verificationRepository.upsert(capture(entitySlot)) } answers { entitySlot.captured }
 
         backendService.search(verificationId, "Q")
 

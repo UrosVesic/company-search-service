@@ -16,7 +16,7 @@ import com.code.companysearchservice.verification.repository.VerificationReposit
 import com.code.companysearchservice.verification.repository.model.VerificationEntity
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.stereotype.Service
-import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.UUID
 
 @Service
@@ -29,23 +29,19 @@ class BackendService(
 
     fun search(verificationId: UUID, query: String): BackendServiceResponseDTO {
         verificationRepository.findByVerificationId(verificationId)?.let {
-            val oldResult = objectMapper.readValue<ResultDTO>(it.result)
-            return BackendServiceResponseDTO(
-                verificationId = verificationId,
-                query = it.queryText,
-                result = oldResult,
-                lookupStatus = LookupStatus.CACHED
-            )
+            return it.toCachedResponse(verificationId)
         }
 
         val resolvedResult = resolveCompanies(query)
         val resultDTO = resolvedResult.toResultDTO()
 
-        verificationRepository.save(
+        val id = UUID.randomUUID()
+        val saved = verificationRepository.upsert(
             VerificationEntity(
+                id = id,
                 verificationId = verificationId,
                 queryText = query,
-                timestamp = Instant.now(),
+                timestamp = OffsetDateTime.now(),
                 result = objectMapper.writeValueAsString(resultDTO),
                 source = resolvedResult.source,
             )
@@ -55,8 +51,17 @@ class BackendService(
             verificationId = verificationId,
             query = query,
             result = resultDTO,
+            lookupStatus = if (saved.id != id) LookupStatus.CACHED else LookupStatus.FRESH,
         )
     }
+
+    private fun VerificationEntity.toCachedResponse(verificationId: UUID) =
+        BackendServiceResponseDTO(
+            verificationId = verificationId,
+            query = queryText,
+            result = objectMapper.readValue<ResultDTO>(result),
+            lookupStatus = LookupStatus.CACHED,
+        )
 
     private fun resolveCompanies(query: String): CompanySearchResult {
         val freeResult = freeThirdPartyClient.searchCompanies(query)

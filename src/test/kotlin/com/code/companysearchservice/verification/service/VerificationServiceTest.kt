@@ -14,7 +14,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
-import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.UUID
 
 class VerificationServiceTest {
@@ -27,7 +27,7 @@ class VerificationServiceTest {
     @Test
     fun `should return verification DTO when found`() {
         val verificationId = UUID.randomUUID()
-        val timestamp = Instant.now()
+        val timestamp = OffsetDateTime.now()
         val resultJson =
             """{"primaryResult":{"cin":"ABC","name":"Test","registrationDate":"2023-01-01","address":"123 St","isActive":true},"otherResults":[],"status":"SUCCESS"}"""
 
